@@ -59,6 +59,11 @@ public class GeneratorMethod {
         Where def = getLoopMatchAnnotation().value();
         Element[] matchedElements = elementFinder.getElementsFound(def);
 
+        for (Where extraDef : getLoopMatchAnnotation().matchExtraElements()) {
+            Element[] extraElements = elementFinder.getElementsFound(extraDef);
+            methodTemplate.setRootModelMapping(extraDef.matchResultVariable(), extraElements);
+        }
+
         for (Element e : matchedElements) {
             methodTemplate.setRootModelMapping(def.matchResultVariable(), e);
             methodTemplate.process(getOutputRootLocation(), resolveOutputFile(e, getOutputFile()));
@@ -100,7 +105,13 @@ public class GeneratorMethod {
         if (getGroupMatchAnnotation() != null) {
             return getGroupMatchAnnotation().value();
         } else if (getLoopMatchAnnotation() != null) {
-            return new Where[] { getLoopMatchAnnotation().value() };
+            Where[] extraDefs = getLoopMatchAnnotation().matchExtraElements();
+
+            Where[] result = new Where[extraDefs.length + 1];
+            result[0] = getLoopMatchAnnotation().value();
+            System.arraycopy(extraDefs, 0, result, 1, extraDefs.length);
+
+            return result;
         } else {
             return new Where[0];
         }

@@ -30,4 +30,9 @@ public @interface ForEachElement {
      */
     Where value() default @Where;
 
+    /**
+     * Additional elements to match and provide to the template.
+     */
+    Where[] matchExtraElements() default {};
+
 }
