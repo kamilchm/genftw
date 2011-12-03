@@ -24,13 +24,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-
 /**
  * Indicates that an annotated interface describes a generator.
  * <p>
  * Generators are used to {@linkplain Produces produce} arbitrary files, such as additional source code, configuration
  * files, etc. Generators are {@linkplain GeneratorProcessor processed} before invoking Java compiler, which means your
- * handwritten source code can directly reference generated source elements.
+ * handwritten source code can directly reference generated source elements. In addition, generators support declarative
+ * element {@linkplain Where matching} and template processing based on {@linkplain ForAllElements for-all} and
+ * {@linkplain ForEachElement for-each} strategies.
  * 
  * @see Produces
  */

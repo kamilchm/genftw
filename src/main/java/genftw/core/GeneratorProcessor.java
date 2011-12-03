@@ -57,31 +57,21 @@ import javax.lang.model.util.Types;
 @SupportedAnnotationTypes("genftw.api.Generator")
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 @SupportedOptions({
-        GeneratorProcessor.OPT_VERBOSE,
-        GeneratorProcessor.OPT_MATCHED_ELEMENT_PACKAGE_PATTERN,
-        GeneratorProcessor.OPT_TEMPLATE_VERBOSE,
+        GeneratorProcessor.OPT_MATCHED_ELEMENT_PACKAGE_FILTER,
         GeneratorProcessor.OPT_TEMPLATE_ROOT_DIR,
+        GeneratorProcessor.OPT_TEMPLATE_LOGGER_LIBRARY,
         GeneratorProcessor.OPT_TEMPLATE_DEFAULT_ENCODING })
 public class GeneratorProcessor extends AbstractProcessor {
-
-    /**
-     * This option enables verbose messages during generator processing.
-     */
-    public static final String OPT_VERBOSE = "genftw.verbose";
 
     /**
      * This option defines regular expression pattern that filters {@linkplain RoundEnvironment#getRootElements() root
      * elements} (and elements enclosed within them), that are eligible for {@linkplain Where matching}, by their
      * enclosing {@linkplain PackageElement#getQualifiedName() package name}.
      * <p>
-     * <em>It is strongly recommended to set this option to a sensible value.</em>
+     * Matching candidate element filter is disabled by default.
+     * <em>For improved performance, it is strongly recommended to set this option to a sensible value.</em>
      */
-    public static final String OPT_MATCHED_ELEMENT_PACKAGE_PATTERN = "genftw.matchedElementPackagePattern";
-
-    /**
-     * This option enables FreeMarker logging using {@code java.util.logging} package.
-     */
-    public static final String OPT_TEMPLATE_VERBOSE = "genftw.templateVerbose";
+    public static final String OPT_MATCHED_ELEMENT_PACKAGE_FILTER = "genftw.matchedElementPackageFilter";
 
     /**
      * This option defines template file root directory.
@@ -89,6 +79,14 @@ public class GeneratorProcessor extends AbstractProcessor {
      * Selected value must be a pathname that points to an existing directory.
      */
     public static final String OPT_TEMPLATE_ROOT_DIR = "genftw.templateRootDir";
+
+    /**
+     * This option controls FreeMarker logging.
+     * <p>
+     * Selected value must be one of FreeMarker {@link Logger} constants. FreeMarker logging is
+     * {@linkplain Logger#LIBRARY_NONE disabled} by default.
+     */
+    public static final String OPT_TEMPLATE_LOGGER_LIBRARY = "genftw.templateLoggerLibrary";
 
     /**
      * This option overrides default template file encoding.
@@ -107,34 +105,42 @@ public class GeneratorProcessor extends AbstractProcessor {
         super.init(processingEnv);
         Map<String, String> options = processingEnv.getOptions();
 
-        boolean verbose = options.containsKey(OPT_VERBOSE);
+        logger = createLogger(processingEnv.getMessager());
 
-        Pattern elementPackagePattern = options.containsKey(OPT_MATCHED_ELEMENT_PACKAGE_PATTERN)
-                ? Pattern.compile(options.get(OPT_MATCHED_ELEMENT_PACKAGE_PATTERN))
+        Pattern elementPackageFilter = options.containsKey(OPT_MATCHED_ELEMENT_PACKAGE_FILTER)
+                ? Pattern.compile(options.get(OPT_MATCHED_ELEMENT_PACKAGE_FILTER))
                 : Pattern.compile(".*");
 
-        boolean templateVerbose = options.containsKey(OPT_TEMPLATE_VERBOSE);
+        elementFinder = createElementFinder(processingEnv.getElementUtils(),
+                        processingEnv.getTypeUtils(), elementPackageFilter);
+
+        methodFinder = createMethodFinder(processingEnv.getElementUtils(),
+                elementFinder, logger);
 
         String templateRootDir = options.get(OPT_TEMPLATE_ROOT_DIR);
         if (templateRootDir == null) {
-            throw new IllegalArgumentException("Template root directory not defined");
+            logger.warning("Template root directory not defined, using current user working directory");
+            templateRootDir = System.getProperty("user.dir");
+        }
+
+        int templateLoggerLibrary = Logger.LIBRARY_NONE;
+        if (options.containsKey(OPT_TEMPLATE_LOGGER_LIBRARY)) {
+            try {
+                templateLoggerLibrary = Integer.parseInt(options.get(OPT_TEMPLATE_LOGGER_LIBRARY));
+            } catch (NumberFormatException e) {
+                // Ignore exception
+            }
         }
 
         String defaultEncoding = options.containsKey(OPT_TEMPLATE_DEFAULT_ENCODING)
                 ? options.get(OPT_TEMPLATE_DEFAULT_ENCODING)
                 : Charset.defaultCharset().name();
 
-        logger = createLogger(processingEnv.getMessager(), verbose);
-        elementFinder = createElementFinder(processingEnv.getElementUtils(),
-                processingEnv.getTypeUtils(), elementPackagePattern);
-        methodFinder = createMethodFinder(processingEnv.getElementUtils(),
-                elementFinder, logger);
         methodEnv = createMethodEnvironment(processingEnv.getFiler(),
-                processingEnv.getElementUtils(), logger, templateVerbose,
-                templateRootDir, defaultEncoding);
+                processingEnv.getElementUtils(), logger, templateRootDir,
+                templateLoggerLibrary, defaultEncoding);
 
-        logger.info(GeneratorProcessor.class.getSimpleName()
-                + " initialized, using FreeMarker version " + Configuration.getVersionNumber());
+        logger.info("GeneratorProcessor initialized, using FreeMarker " + Configuration.getVersionNumber());
     }
 
     @Override
@@ -142,6 +148,8 @@ public class GeneratorProcessor extends AbstractProcessor {
         if (annotations.isEmpty() || roundEnv.processingOver()) {
             return false;
         }
+
+        logger.info("GeneratorProcessor started");
 
         // Find generator methods
         methodFinder.scan(getGeneratorElements(roundEnv));
@@ -158,6 +166,8 @@ public class GeneratorProcessor extends AbstractProcessor {
                 logger.error("Error while processing generator method", e, m.getElement());
             }
         }
+
+        logger.info("GeneratorProcessor finished");
 
         return true;
     }
@@ -203,13 +213,13 @@ public class GeneratorProcessor extends AbstractProcessor {
         return new HashSet<Where>(matchDefinitions.values());
     }
 
-    ProcessorLogger createLogger(Messager messager, boolean verbose) {
-        return new ProcessorLogger(messager, verbose);
+    ProcessorLogger createLogger(Messager messager) {
+        return new ProcessorLogger(messager);
     }
 
     ElementFinder createElementFinder(Elements elementUtils,
-            Types typeUtils, Pattern elementPackagePattern) {
-        return new ElementFinder(elementUtils, typeUtils, elementPackagePattern);
+            Types typeUtils, Pattern elementPackageFilter) {
+        return new ElementFinder(elementUtils, typeUtils, elementPackageFilter);
     }
 
     GeneratorMethodFinder createMethodFinder(Elements elementUtils,
@@ -218,19 +228,16 @@ public class GeneratorProcessor extends AbstractProcessor {
     }
 
     GeneratorMethodEnvironment createMethodEnvironment(Filer filer,
-            Elements elementUtils, ProcessorLogger logger, boolean templateVerbose,
-            String templateRootDir, String defaultEncoding) {
+            Elements elementUtils, ProcessorLogger logger, String templateRootDir,
+            int templateLoggerLibrary, String defaultEncoding) {
         // Configure FreeMarker logging
         try {
-            if (templateVerbose) {
-                Logger.selectLoggerLibrary(Logger.LIBRARY_JAVA);
-            } else {
-                Logger.selectLoggerLibrary(Logger.LIBRARY_NONE);
-            }
+            Logger.selectLoggerLibrary(templateLoggerLibrary);
         } catch (ClassNotFoundException e) {
-            // This shouldn't happen, ignore exception
+            // Selected logger library not found on classpath, ignore exception
         }
 
+        // Create FreeMarker configuration
         Configuration templateConfig = new Configuration();
 
         // Configure template root directory

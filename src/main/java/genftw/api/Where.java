@@ -28,7 +28,7 @@ import javax.lang.model.element.Modifier;
 /**
  * Defines source element match criteria.
  * <p>
- * Matched element(s) will be a specialization of the {@link Element} interface.
+ * Matched element(s) will be a specialization of the Java Mirror API {@link Element} interface.
  * 
  * @see MetaData
  */

@@ -92,12 +92,9 @@ public class GeneratorMethod {
 
     String resolveOutputFile(Element elm, String outputFileWithVariables) {
         String result = outputFileWithVariables;
-
         result = result.replace("{elementSimpleName}", elm.getSimpleName());
-
         result = result.replace("{packageElementPath}",
                 elementUtils.getPackageOf(elm).getQualifiedName().toString().replace(".", "/"));
-
         return result;
     }
 

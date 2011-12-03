@@ -43,15 +43,15 @@ public class ElementFinder extends ElementScanner6<Void, Set<Where>> {
 
     private final Elements elementUtils;
     private final Types typeUtils;
-    private final Pattern elementPackagePattern;
+    private final Pattern elementPackageFilter;
     private final ElementMatcher elementMatcher;
     private final Set<Element> elementsScanned;
     private final Map<Integer, Set<Element>> elementsFound;
 
-    public ElementFinder(Elements elementUtils, Types typeUtils, Pattern elementPackagePattern) {
+    public ElementFinder(Elements elementUtils, Types typeUtils, Pattern elementPackageFilter) {
         this.elementUtils = elementUtils;
         this.typeUtils = typeUtils;
-        this.elementPackagePattern = elementPackagePattern;
+        this.elementPackageFilter = elementPackageFilter;
         this.elementMatcher = new ElementMatcher(elementUtils);
         this.elementsScanned = new HashSet<Element>();
         this.elementsFound = new HashMap<Integer, Set<Element>>();
@@ -69,7 +69,7 @@ public class ElementFinder extends ElementScanner6<Void, Set<Where>> {
     }
 
     boolean packageIncluded(PackageElement pkg) {
-        return elementPackagePattern.matcher(pkg.getQualifiedName()).matches();
+        return elementPackageFilter.matcher(pkg.getQualifiedName()).matches();
     }
 
     void addElement(Element elm, Where def) {
@@ -90,8 +90,17 @@ public class ElementFinder extends ElementScanner6<Void, Set<Where>> {
         }
     }
 
+    /**
+     * Returns the hash code (key) of the given match definition.
+     * <p>
+     * We are computing annotation hash code manually because:
+     * <p>
+     * <ul>
+     * <li>JSR-269 tools might provide annotation proxies
+     * <li>some parts of match definition are not significant to element matching process
+     * </ul>
+     */
     public int getKey(Where def) {
-        // Compute annotation hash code manually since JSR-269 tools might provide annotation proxies
         int result = HashCodeUtil.SEED;
         result = HashCodeUtil.hash(result, def.kind());
         result = HashCodeUtil.hash(result, def.modifiers());
@@ -184,8 +193,7 @@ public class ElementFinder extends ElementScanner6<Void, Set<Where>> {
             scan(throwable, p);
         }
 
-        // Match enclosed elements
-        return scan(e.getEnclosedElements(), p);
+        return DEFAULT_VALUE;
     }
 
     @Override
@@ -193,8 +201,7 @@ public class ElementFinder extends ElementScanner6<Void, Set<Where>> {
         // Match variable
         matchElement(e, p);
 
-        // Match enclosed elements
-        return scan(e.getEnclosedElements(), p);
+        return DEFAULT_VALUE;
     }
 
     @Override
@@ -211,8 +218,7 @@ public class ElementFinder extends ElementScanner6<Void, Set<Where>> {
             scan(bound, p);
         }
 
-        // Match enclosed elements
-        return scan(e.getEnclosedElements(), p);
+        return DEFAULT_VALUE;
     }
 
 }

@@ -26,11 +26,9 @@ import javax.tools.Diagnostic.Kind;
 public class ProcessorLogger {
 
     private final Messager messager;
-    private final boolean verbose;
 
-    public ProcessorLogger(Messager messager, boolean verbose) {
+    public ProcessorLogger(Messager messager) {
         this.messager = messager;
-        this.verbose = verbose;
     }
 
     void log(Kind kind, String msg, Element elm) {
@@ -42,9 +40,7 @@ public class ProcessorLogger {
     }
 
     public void info(String msg, Element elm) {
-        if (verbose) {
-            log(Kind.NOTE, msg, elm);
-        }
+        log(Kind.NOTE, msg, elm);
     }
 
     public void info(String msg) {
@@ -61,18 +57,13 @@ public class ProcessorLogger {
 
     public void error(String msg, Exception ex, Element elm) {
         log(Kind.ERROR, formatErrorMessage(msg, ex), elm);
-    }
 
-    public void error(String msg, Exception ex) {
-        error(msg, ex, null);
+        // Ensure that error messages appear on standard error output
+        System.err.println(formatErrorMessage(msg, ex));
     }
 
     public void error(String msg, Element elm) {
         error(msg, null, elm);
-    }
-
-    public void error(String msg) {
-        error(msg, null, null);
     }
 
     public String formatErrorMessage(String msg, Exception ex) {

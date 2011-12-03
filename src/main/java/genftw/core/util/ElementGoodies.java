@@ -32,10 +32,8 @@ public class ElementGoodies {
         this.elementUtils = elementUtils;
     }
 
-    public String packageOf(Element elm) {
+    public String getPackageOf(Element elm) {
         return elementUtils.getPackageOf(elm).getQualifiedName().toString();
     }
-
-    // TODO add more utility methods here
 
 }
