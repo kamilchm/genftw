@@ -156,7 +156,10 @@ public class GeneratorProcessor extends AbstractProcessor {
         GeneratorMethod[] methodsFound = methodFinder.getMethodsFound();
 
         // Scan source elements by generator method match criteria
-        elementFinder.scan(roundEnv.getRootElements(), getMatchDefinitions(methodsFound));
+        Set<Where> matchDefinitions = getMatchDefinitions(methodsFound);
+        if (!matchDefinitions.isEmpty()) {
+            elementFinder.scan(roundEnv.getRootElements(), matchDefinitions);
+        }
 
         // Process generator methods
         for (GeneratorMethod m : methodsFound) {
