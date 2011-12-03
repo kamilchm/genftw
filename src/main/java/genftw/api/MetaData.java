@@ -26,8 +26,9 @@ import java.lang.annotation.RetentionPolicy;
  * <p>
  * Annotated elements can be matched by generator methods using {@linkplain Where#metaData() meta-data match string}.
  * <p>
- * When matching elements, this annotation may appear directly on an element, or be nested as a meta-annotation present
- * on some other element annotation.
+ * This annotation can appear directly on an element, or can be "nested" as a meta-annotation present on some other
+ * annotation of that element. In the latter case, when there are multiple meta-data annotations reachable from the
+ * given element, only the first one is considered during meta-data matching.
  * 
  * @see Where
  */

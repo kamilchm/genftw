@@ -39,6 +39,9 @@ public class MetaDataMatcher {
 
     private static final Pattern META_DATA_PROPERTY_PATTERN = Pattern.compile("\\[([^\\[\\]]*)\\]");
 
+    private static final String ANY_KIND = "*";
+    private static final String PROPERTY_VALUE_SEPARATOR = "=";
+
     private final Elements elementUtils;
 
     public MetaDataMatcher(Elements elementUtils) {
@@ -63,7 +66,7 @@ public class MetaDataMatcher {
                 ? metaDataMatchString
                 : metaDataMatchString.substring(0, propertyStartIndex);
 
-        if (!"*".equals(kind) && !kind.equals(metaDataMirror.kind())) {
+        if (!ANY_KIND.equals(kind) && !kind.equals(metaDataMirror.kind())) {
             return false;
         }
 
@@ -73,15 +76,9 @@ public class MetaDataMatcher {
 
         while (matcher.find()) {
             String propertyExpression = matcher.group(1);
-            int eqStartIndex = propertyExpression.indexOf("=");
-            String propertyName, propertyValue = null;
-
-            if (eqStartIndex == -1) {
-                propertyName = propertyExpression;
-            } else {
-                propertyName = propertyExpression.substring(0, eqStartIndex);
-                propertyValue = propertyExpression.substring(eqStartIndex + 1);
-            }
+            MetaDataProperty metaDataProperty = getProperty(propertyExpression);
+            String propertyName = metaDataProperty.name();
+            String propertyValue = metaDataProperty.value();
 
             // Match by property name
             if (propertyName.isEmpty() || !propertyMap.containsKey(propertyName)) {
@@ -97,21 +94,25 @@ public class MetaDataMatcher {
         return true;
     }
 
-    Map<String, String> getPropertyMap(String[] metaDataProperties) {
-        Map<String, String> propertyMap = new HashMap<String, String>(metaDataProperties.length);
+    MetaDataProperty getProperty(String propertyExpression) {
+        int eqStartIndex = propertyExpression.indexOf(PROPERTY_VALUE_SEPARATOR);
+        String propertyName, propertyValue = null;
 
-        for (String propertyExpression : metaDataProperties) {
-            int eqStartIndex = propertyExpression.indexOf("=");
-            String propertyName, propertyValue = null;
+        if (eqStartIndex == -1) {
+            propertyName = propertyExpression;
+        } else {
+            propertyName = propertyExpression.substring(0, eqStartIndex);
+            propertyValue = propertyExpression.substring(eqStartIndex + 1);
+        }
 
-            if (eqStartIndex == -1) {
-                propertyName = propertyExpression;
-            } else {
-                propertyName = propertyExpression.substring(0, eqStartIndex);
-                propertyValue = propertyExpression.substring(eqStartIndex + 1);
-            }
+        return new MetaDataProperty(propertyName, propertyValue);
+    }
 
-            propertyMap.put(propertyName, propertyValue);
+    Map<String, String> getPropertyMap(MetaDataProperty[] properties) {
+        Map<String, String> propertyMap = new HashMap<String, String>(properties.length);
+
+        for (MetaDataProperty p : properties) {
+            propertyMap.put(p.name(), p.value());
         }
 
         return propertyMap;
@@ -123,6 +124,7 @@ public class MetaDataMatcher {
             String annotationTypeName = annotationType.toString();
 
             if (MetaData.class.getName().equals(annotationTypeName)) {
+                // Return the first meta-data annotation found
                 return m;
             } else if (annotationTypeName.startsWith("java.lang.annotation")) {
                 // Skip annotations from java.lang.annotation package to avoid infinite recursion
@@ -146,18 +148,19 @@ public class MetaDataMatcher {
         MetaDataMirror result = null;
 
         if (metaDataAnnotation != null) {
-            Map<? extends ExecutableElement, ? extends AnnotationValue> metaDataValues =
+            Map<? extends ExecutableElement, ? extends AnnotationValue> metaDataAnnotationValues =
                     elementUtils.getElementValuesWithDefaults(metaDataAnnotation);
 
             String kind = null;
-            String[] properties = null;
+            MetaDataProperty[] properties = null;
 
             // Parse meta-data kind and properties from annotation values
-            for (ExecutableElement key : metaDataValues.keySet()) {
+            for (ExecutableElement key : metaDataAnnotationValues.keySet()) {
                 if ("kind".equals(key.getSimpleName().toString())) {
-                    kind = (String) metaDataValues.get(key).getValue();
+                    kind = (String) metaDataAnnotationValues.get(key).getValue();
                 } else if ("properties".equals(key.getSimpleName().toString())) {
-                    properties = getMetaDataProperties((List<AnnotationValue>) metaDataValues.get(key).getValue());
+                    properties = getMetaDataProperties(
+                            (List<AnnotationValue>) metaDataAnnotationValues.get(key).getValue());
                 }
             }
 
@@ -167,12 +170,12 @@ public class MetaDataMatcher {
         return result;
     }
 
-    String[] getMetaDataProperties(List<AnnotationValue> propertyList) {
-        String[] properties = new String[propertyList.size()];
+    MetaDataProperty[] getMetaDataProperties(List<AnnotationValue> propertyList) {
+        MetaDataProperty[] properties = new MetaDataProperty[propertyList.size()];
         int i = 0;
 
         for (AnnotationValue v : propertyList) {
-            properties[i++] = (String) v.getValue();
+            properties[i++] = getProperty((String) v.getValue());
         }
 
         return properties;
@@ -180,12 +183,32 @@ public class MetaDataMatcher {
 
 }
 
+class MetaDataProperty {
+
+    private final String name;
+    private final String value;
+
+    MetaDataProperty(String name, String value) {
+        this.name = name;
+        this.value = value;
+    }
+
+    public String name() {
+        return name;
+    }
+
+    public String value() {
+        return value;
+    }
+
+}
+
 class MetaDataMirror {
 
     private final String kind;
-    private final String[] properties;
+    private final MetaDataProperty[] properties;
 
-    public MetaDataMirror(String kind, String[] properties) {
+    MetaDataMirror(String kind, MetaDataProperty[] properties) {
         this.kind = kind;
         this.properties = properties;
     }
@@ -194,7 +217,7 @@ class MetaDataMirror {
         return kind;
     }
 
-    public String[] properties() {
+    public MetaDataProperty[] properties() {
         return properties;
     }
 
