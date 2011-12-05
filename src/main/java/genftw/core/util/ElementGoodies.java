@@ -16,7 +16,12 @@
 
 package genftw.core.util;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 
 /**
@@ -34,6 +39,22 @@ public class ElementGoodies {
 
     public String getPackageOf(Element elm) {
         return elementUtils.getPackageOf(elm).getQualifiedName().toString();
+    }
+
+    public TypeElement getType(String name) {
+        return elementUtils.getTypeElement(name);
+    }
+
+    public boolean hasAnnotation(Element elm, String annotationName) {
+        return getAllAnnotationNames(elm).contains(annotationName);
+    }
+
+    Set<String> getAllAnnotationNames(Element elm) {
+        Set<String> annotationNames = new HashSet<String>();
+        for (AnnotationMirror a : elementUtils.getAllAnnotationMirrors(elm)) {
+            annotationNames.add(a.getAnnotationType().toString());
+        }
+        return annotationNames;
     }
 
 }
