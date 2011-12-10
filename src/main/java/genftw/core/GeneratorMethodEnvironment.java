@@ -24,9 +24,11 @@ import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
 import javax.lang.model.util.Elements;
 
+import freemarker.ext.beans.BeansWrapper;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import freemarker.template.TemplateModelException;
 import genftw.core.util.ElementGoodies;
 
 /**
@@ -60,11 +62,27 @@ public class GeneratorMethodEnvironment {
         Template template = templateConfig.getTemplate(method.getTemplateFile());
 
         // Create template root data-model
-        Map<String, Object> rootMap = new HashMap<String, Object>();
-        rootMap.put("elementGoodies", elementGoodies);
+        Map<String, Object> rootMap = createTemplateRootModel();
 
         // Process generator method
-        method.process(new GeneratorMethodTemplate(filer, template, rootMap));
+        method.process(new GeneratorMethodTemplate(filer, template, rootMap, logger));
+    }
+
+    Map<String, Object> createTemplateRootModel() throws TemplateModelException {
+        Map<String, Object> rootMap = new HashMap<String, Object>();
+
+        // Expose ElementGoodies instance reference
+        rootMap.put("elementGoodies", elementGoodies);
+
+        // Expose ElementFilter static reference
+        rootMap.put("ElementFilter", BeansWrapper.getDefaultInstance()
+                .getStaticModels().get("javax.lang.model.util.ElementFilter"));
+
+        // Expose all available enum classes
+        rootMap.put("enums", BeansWrapper.getDefaultInstance()
+                .getEnumModels());
+
+        return rootMap;
     }
 
 }
