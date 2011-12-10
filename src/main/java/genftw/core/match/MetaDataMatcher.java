@@ -185,7 +185,7 @@ public class MetaDataMatcher {
                 }
             }
 
-            // Parse all String values from the annotation target
+            // Parse all values from the annotation target
             AnnotationMirror metaDataAnnotationTarget = metaDataAnnotation.annotationTarget();
             List<MetaDataProperty> annotationTargetProperties = new LinkedList<MetaDataProperty>();
 
@@ -194,13 +194,19 @@ public class MetaDataMatcher {
                         elementUtils.getElementValuesWithDefaults(metaDataAnnotationTarget);
 
                 for (ExecutableElement key : metaDataAnnotationTargetValues.keySet()) {
-                    Object value = metaDataAnnotationTargetValues.get(key).getValue();
+                    String annotationElementName = key.getSimpleName().toString();
+                    Object rawValue = metaDataAnnotationTargetValues.get(key).getValue();
+                    String stringValue = null;
 
-                    if (String.class.isAssignableFrom(value.getClass())) {
-                        String annotationElementName = key.getSimpleName().toString();
-                        annotationTargetProperties.add(
-                                new MetaDataProperty(annotationElementName, (String) value));
+                    if (String.class.isAssignableFrom(rawValue.getClass())) {
+                        stringValue = (String) rawValue;
+                    } else {
+                        // Convert non-String annotation value into String representation
+                        stringValue = metaDataAnnotationTargetValues.get(key).toString();
                     }
+
+                    annotationTargetProperties.add(new MetaDataProperty(
+                            annotationElementName, stringValue));
                 }
 
                 annotationTargetPropertyMap = getPropertyMap(

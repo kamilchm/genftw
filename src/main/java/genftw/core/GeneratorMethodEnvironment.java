@@ -64,7 +64,7 @@ public class GeneratorMethodEnvironment {
         rootMap.put("elementGoodies", elementGoodies);
 
         // Process generator method
-        method.process(new GeneratorMethodTemplate(filer, template, rootMap, logger));
+        method.process(new GeneratorMethodTemplate(filer, template, rootMap));
     }
 
 }

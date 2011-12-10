@@ -37,21 +37,15 @@ public class GeneratorMethodTemplate {
     private final Filer filer;
     private final Template template;
     private final Map<String, Object> rootMap;
-    private final ProcessorLogger logger;
 
-    public GeneratorMethodTemplate(Filer filer, Template template, Map<String, Object> rootMap, ProcessorLogger logger) {
+    public GeneratorMethodTemplate(Filer filer, Template template, Map<String, Object> rootMap) {
         this.filer = filer;
         this.template = template;
         // Create defensive copy of template data-model to prevent corrupting the original instance
         this.rootMap = new HashMap<String, Object>(rootMap);
-        this.logger = logger;
     }
 
     public void setRootModelMapping(String key, Object value) {
-        if (rootMap.containsKey(key)) {
-            logger.warning("Overriding existing template data-model mapping " + key);
-        }
-
         rootMap.put(key, value);
     }
 

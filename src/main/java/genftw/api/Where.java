@@ -82,8 +82,8 @@ public @interface Where {
      * <li>match elements of kind K, having meta-data property P: <tt>K[P]</tt>
      * <li>match elements of kind K, having meta-data property P with value V: <tt>K[P=V]</tt>
      * <li>match elements of kind K, having meta-data properties P and Q: <tt>K[P][Q]</tt>
-     * <li>match elements of kind K, having String-valued {@link MetaData} target annotation property R with value S
-     * (applies only when using {@link MetaData} as a meta-annotation): <tt>K[@R=S]</tt>
+     * <li>match elements of kind K, having {@link MetaData} target annotation property R with value S (applies only
+     * when using {@link MetaData} as a meta-annotation): <tt>K[@R=S]</tt>
      * </ul>
      */
     String metaData() default DONT_MATCH;
