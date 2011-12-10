@@ -21,7 +21,6 @@ import java.util.Set;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 
 /**
@@ -37,12 +36,12 @@ public class ElementGoodies {
         this.elementUtils = elementUtils;
     }
 
-    public String getPackageOf(Element elm) {
-        return elementUtils.getPackageOf(elm).getQualifiedName().toString();
+    public Elements getElementUtils() {
+        return elementUtils;
     }
 
-    public TypeElement getType(String name) {
-        return elementUtils.getTypeElement(name);
+    public String getPackageOf(Element elm) {
+        return elementUtils.getPackageOf(elm).getQualifiedName().toString();
     }
 
     public boolean hasAnnotation(Element elm, String annotationName) {
