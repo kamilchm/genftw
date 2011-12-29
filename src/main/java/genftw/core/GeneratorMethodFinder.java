@@ -70,13 +70,11 @@ public class GeneratorMethodFinder extends ElementScanner6<Void, Void> {
                 if (e.getAnnotation(ForAllElements.class) != null
                         && e.getAnnotation(ForEachElement.class) != null) {
                     logger.error("Cannot use more than one element matching annotation", e);
-                } else {
-                    methodsFound.add(new GeneratorMethod(e, elementUtils, elementFinder, logger));
-                }
-
-                if (e.getReturnType().getKind() != TypeKind.VOID || !e.getParameters().isEmpty()
+                } else if (e.getReturnType().getKind() != TypeKind.VOID || !e.getParameters().isEmpty()
                         || !e.getThrownTypes().isEmpty() || !e.getTypeParameters().isEmpty()) {
                     logger.warning("Signature of a generator method is irrelevant to its processing", e);
+                } else {
+                    methodsFound.add(new GeneratorMethod(e, elementUtils, elementFinder, logger));
                 }
             } else {
                 logger.warning(Produces.class.getSimpleName() + " annotation not found on method " +

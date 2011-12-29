@@ -43,16 +43,17 @@ public class ElementFinder extends ElementScanner6<Void, Set<Where>> {
 
     private final Elements elementUtils;
     private final Types typeUtils;
-    private final Pattern elementPackageFilter;
     private final ElementMatcher elementMatcher;
+    private final Pattern elementPackagePattern;
     private final Set<Element> elementsScanned;
     private final Map<Integer, Set<Element>> elementsFound;
 
-    public ElementFinder(Elements elementUtils, Types typeUtils, Pattern elementPackageFilter) {
+    public ElementFinder(Elements elementUtils, Types typeUtils,
+            ElementMatcher elementMatcher, String elementPackageFilter) {
         this.elementUtils = elementUtils;
         this.typeUtils = typeUtils;
-        this.elementPackageFilter = elementPackageFilter;
-        this.elementMatcher = new ElementMatcher(elementUtils);
+        this.elementMatcher = elementMatcher;
+        this.elementPackagePattern = Pattern.compile(elementPackageFilter);
         this.elementsScanned = new HashSet<Element>();
         this.elementsFound = new HashMap<Integer, Set<Element>>();
     }
@@ -69,7 +70,7 @@ public class ElementFinder extends ElementScanner6<Void, Set<Where>> {
     }
 
     boolean packageIncluded(PackageElement pkg) {
-        return elementPackageFilter.matcher(pkg.getQualifiedName()).matches();
+        return elementPackagePattern.matcher(pkg.getQualifiedName().toString()).matches();
     }
 
     void addElement(Element elm, Where def) {

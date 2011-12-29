@@ -50,9 +50,11 @@ public class ElementGoodies {
 
     Set<String> getAllAnnotationNames(Element elm) {
         Set<String> annotationNames = new HashSet<String>();
+
         for (AnnotationMirror a : elementUtils.getAllAnnotationMirrors(elm)) {
             annotationNames.add(a.getAnnotationType().toString());
         }
+
         return annotationNames;
     }
 

@@ -2,20 +2,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-	<modelVersion>4.0.0</modelVersion>
-
 	<parent>
 		<groupId>org.sonatype.oss</groupId>
 		<artifactId>oss-parent</artifactId>
 		<version>5</version>
 	</parent>
 
+	<modelVersion>4.0.0</modelVersion>
 	<groupId>genftw</groupId>
 	<artifactId>genftw</artifactId>
 	<version>1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>Generators For The Win</name>
-
 	<description>JSR-269 tool for writing generators using templates and annotations</description>
 	<url>http://code.google.com/p/genftw/</url>
 	<inceptionYear>2011</inceptionYear>
@@ -57,15 +55,15 @@
 
 		<maven-compiler-plugin.version>2.3.2</maven-compiler-plugin.version>
 		<maven-resources-plugin.version>2.5</maven-resources-plugin.version>
-		<maven-surefire-plugin.version>2.10</maven-surefire-plugin.version>
-		<maven-deploy-plugin.version>2.7</maven-deploy-plugin.version>
-		<maven-release-plugin.version>2.2.1</maven-release-plugin.version>
+		<maven-surefire-plugin.version>2.11</maven-surefire-plugin.version>
 		<maven-source-plugin.version>2.1.2</maven-source-plugin.version>
+		<maven-deploy-plugin.version>2.7</maven-deploy-plugin.version>
+		<maven-release-plugin.version>2.2.2</maven-release-plugin.version>
 		<maven-gpg-plugin.version>1.4</maven-gpg-plugin.version>
 
 		<freemarker.version>2.3.18</freemarker.version>
 		<junit.version>4.10</junit.version>
-		<mockito.version>1.8.5</mockito.version>
+		<mockito.version>1.9.0</mockito.version>
 	</properties>
 
 	<dependencies>
@@ -125,6 +123,21 @@
 				</configuration>
 			</plugin>
 
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>${maven-source-plugin.version}</version>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 			<!-- TODO investigate -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -143,21 +156,6 @@
 					<releaseProfiles>release</releaseProfiles>
 					<arguments>-Psonatype-oss-release -Prelease -Dgpg.passphrase=${gpg.passphrase}</arguments>
 				</configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-source-plugin</artifactId>
-				<version>${maven-source-plugin.version}</version>
-				<executions>
-					<execution>
-						<id>attach-sources</id>
-						<phase>verify</phase>
-						<goals>
-							<goal>jar-no-fork</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 	</build>

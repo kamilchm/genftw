@@ -36,9 +36,9 @@ public class ElementMatcher {
     private final Elements elementUtils;
     private final MetaDataMatcher metaDataMatcher;
 
-    public ElementMatcher(Elements elementUtils) {
+    public ElementMatcher(Elements elementUtils, MetaDataMatcher metaDataMatcher) {
         this.elementUtils = elementUtils;
-        this.metaDataMatcher = new MetaDataMatcher(elementUtils);
+        this.metaDataMatcher = metaDataMatcher;
     }
 
     public boolean matches(Element elm, Where def) {

@@ -36,16 +36,16 @@ public class GeneratorMethodTemplate {
 
     private final Filer filer;
     private final Template template;
-    private final Map<String, Object> rootMap;
     private final ProcessorLogger logger;
+    private final Map<String, Object> rootMap;
 
     public GeneratorMethodTemplate(Filer filer, Template template,
             Map<String, Object> rootMap, ProcessorLogger logger) {
         this.filer = filer;
         this.template = template;
+        this.logger = logger;
         // Create defensive copy of template data-model to prevent corrupting the original instance
         this.rootMap = new HashMap<String, Object>(rootMap);
-        this.logger = logger;
     }
 
     public void setRootModelMapping(String key, Object value) {

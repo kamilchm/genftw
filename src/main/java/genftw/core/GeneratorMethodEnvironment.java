@@ -79,8 +79,7 @@ public class GeneratorMethodEnvironment {
                 .getStaticModels().get("javax.lang.model.util.ElementFilter"));
 
         // Expose all available enum classes
-        rootMap.put("enums", BeansWrapper.getDefaultInstance()
-                .getEnumModels());
+        rootMap.put("enums", BeansWrapper.getDefaultInstance().getEnumModels());
 
         return rootMap;
     }

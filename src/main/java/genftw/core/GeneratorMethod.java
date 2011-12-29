@@ -119,8 +119,8 @@ public class GeneratorMethod {
             return getGroupMatchAnnotation().value();
         } else if (getLoopMatchAnnotation() != null) {
             Where[] extraDefs = getLoopMatchAnnotation().matchExtraElements();
-
             Where[] result = new Where[extraDefs.length + 1];
+
             result[0] = getLoopMatchAnnotation().value();
             System.arraycopy(extraDefs, 0, result, 1, extraDefs.length);
 

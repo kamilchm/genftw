@@ -23,6 +23,8 @@ import freemarker.template.DefaultObjectWrapper;
 import genftw.api.Generator;
 import genftw.api.Where;
 import genftw.core.match.ElementFinder;
+import genftw.core.match.ElementMatcher;
+import genftw.core.match.MetaDataMatcher;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,7 +33,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
@@ -105,11 +106,10 @@ public class GeneratorProcessor extends AbstractProcessor {
         super.init(processingEnv);
         Map<String, String> options = processingEnv.getOptions();
 
-        logger = createLogger(processingEnv.getMessager());
+        setLogger(createLogger(processingEnv.getMessager()));
 
-        Pattern elementPackageFilter = options.containsKey(OPT_MATCHED_ELEMENT_PACKAGE_FILTER)
-                ? Pattern.compile(options.get(OPT_MATCHED_ELEMENT_PACKAGE_FILTER))
-                : Pattern.compile(".*");
+        String elementPackageFilter = options.containsKey(OPT_MATCHED_ELEMENT_PACKAGE_FILTER)
+                ? options.get(OPT_MATCHED_ELEMENT_PACKAGE_FILTER) : ".*";
 
         elementFinder = createElementFinder(processingEnv.getElementUtils(),
                         processingEnv.getTypeUtils(), elementPackageFilter);
@@ -183,8 +183,6 @@ public class GeneratorProcessor extends AbstractProcessor {
         Set<TypeElement> generatorElements = new HashSet<TypeElement>(annotatedElements.size());
 
         for (Element e : annotatedElements) {
-            logger.info("Found element " + e.toString(), e);
-
             if (!TypeElement.class.isAssignableFrom(e.getClass())) {
                 // This shouldn't happen, Generator annotation is permitted on types only
                 continue;
@@ -216,13 +214,20 @@ public class GeneratorProcessor extends AbstractProcessor {
         return new HashSet<Where>(matchDefinitions.values());
     }
 
+    void setLogger(ProcessorLogger logger) {
+        this.logger = logger;
+    }
+
     ProcessorLogger createLogger(Messager messager) {
         return new ProcessorLogger(messager);
     }
 
     ElementFinder createElementFinder(Elements elementUtils,
-            Types typeUtils, Pattern elementPackageFilter) {
-        return new ElementFinder(elementUtils, typeUtils, elementPackageFilter);
+            Types typeUtils, String elementPackageFilter) {
+        MetaDataMatcher metaDataMatcher = new MetaDataMatcher(elementUtils);
+        ElementMatcher elementMatcher = new ElementMatcher(elementUtils, metaDataMatcher);
+
+        return new ElementFinder(elementUtils, typeUtils, elementMatcher, elementPackageFilter);
     }
 
     GeneratorMethodFinder createMethodFinder(Elements elementUtils,
@@ -254,7 +259,7 @@ public class GeneratorProcessor extends AbstractProcessor {
         // Cache templates using strong references for efficiency
         templateConfig.setCacheStorage(new StrongCacheStorage());
 
-        // Cache templates forever
+        // Cache templates during annotation processor lifetime
         templateConfig.setTemplateUpdateDelay(Integer.MAX_VALUE);
 
         // Apply common template settings
