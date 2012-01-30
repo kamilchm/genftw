@@ -23,7 +23,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Causes a generator method to be processed once, providing all elements matching given criteria.
+ * Causes a generator method to be processed once, providing all elements matching given criteria to the template.
  * 
  * @see Where
  */

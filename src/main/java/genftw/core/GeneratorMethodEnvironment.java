@@ -39,6 +39,7 @@ public class GeneratorMethodEnvironment {
     private final Configuration templateConfig;
     private final Filer filer;
     private final ProcessorLogger logger;
+    private final Elements elementUtils;
     private final ElementGoodies elementGoodies;
 
     public GeneratorMethodEnvironment(Configuration templateConfig,
@@ -46,6 +47,7 @@ public class GeneratorMethodEnvironment {
         this.templateConfig = templateConfig;
         this.filer = filer;
         this.logger = logger;
+        this.elementUtils = elementUtils;
         this.elementGoodies = new ElementGoodies(elementUtils);
     }
 
@@ -70,6 +72,9 @@ public class GeneratorMethodEnvironment {
 
     Map<String, Object> createTemplateRootModel() throws TemplateModelException {
         Map<String, Object> rootMap = new HashMap<String, Object>();
+
+        // Expose Elements instance reference
+        rootMap.put("elementUtils", elementUtils);
 
         // Expose ElementGoodies instance reference
         rootMap.put("elementGoodies", elementGoodies);

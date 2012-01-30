@@ -25,7 +25,8 @@ import java.lang.annotation.Target;
 import javax.lang.model.element.Element;
 
 /**
- * Causes a generator method to be processed multiple times, providing each element matching given criteria.
+ * Causes a generator method to be processed multiple times, providing each element matching given criteria to the
+ * template.
  * <p>
  * Allows the use of following variables within {@linkplain Produces#output() output file pathname}:
  * <p>
