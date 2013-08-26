@@ -159,7 +159,7 @@
 
   <distributionManagement>
     <repository>
-      <id>conjars</id>
+      <id>conjars.org</id>
       <name>Conjars repository</name>
       <url>http://conjars.org/repo</url>
       <layout>default</layout>
