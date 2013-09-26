@@ -16,43 +16,60 @@
 
 package genftw.core.util;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.util.Elements;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Contains utility methods for working with source elements, complementing standard {@linkplain Elements element
  * utilities}.
- * <p>
+ * <p/>
  * Intended for use within templates.
  */
 public class ElementGoodies {
 
-    private final Elements elementUtils;
+  private final Elements elementUtils;
 
-    public ElementGoodies(Elements elementUtils) {
-        this.elementUtils = elementUtils;
+  public ElementGoodies(Elements elementUtils) {
+    this.elementUtils = elementUtils;
+  }
+
+  public String getPackageOf(Element elm) {
+    return elementUtils.getPackageOf(elm).getQualifiedName().toString();
+  }
+
+  public boolean hasAnnotation(Element elm, String annotationName) {
+    return getAnnotationByName(elm, annotationName) != null;
+  }
+
+  public Object getAnnotationValue(Element elm, String annotationName) {
+    AnnotationMirror annotation = getAnnotationByName(elm, annotationName);
+    if (annotation != null) {
+      for (Map.Entry<? extends ExecutableElement, ? extends AnnotationValue> entry : annotation.getElementValues()
+          .entrySet()) {
+        if (entry.getKey().getSimpleName().contentEquals(annotationName)) return entry.getValue();
+      }
     }
+    return null;
+  }
 
-    public String getPackageOf(Element elm) {
-        return elementUtils.getPackageOf(elm).getQualifiedName().toString();
+  Set<String> getAllAnnotationNames(Element elm) {
+    Set<String> annotationNames = new HashSet<String>();
+    for (AnnotationMirror a : elementUtils.getAllAnnotationMirrors(elm)) {
+      annotationNames.add(a.getAnnotationType().toString());
     }
+    return annotationNames;
+  }
 
-    public boolean hasAnnotation(Element elm, String annotationName) {
-        return getAllAnnotationNames(elm).contains(annotationName);
+  private AnnotationMirror getAnnotationByName(Element elm, String name) {
+    for (AnnotationMirror annotation : elementUtils.getAllAnnotationMirrors(elm)) {
+      if (annotation.getAnnotationType().toString().equals(name)) return annotation;
     }
-
-    Set<String> getAllAnnotationNames(Element elm) {
-        Set<String> annotationNames = new HashSet<String>();
-
-        for (AnnotationMirror a : elementUtils.getAllAnnotationMirrors(elm)) {
-            annotationNames.add(a.getAnnotationType().toString());
-        }
-
-        return annotationNames;
-    }
-
+    return null;
+  }
 }
