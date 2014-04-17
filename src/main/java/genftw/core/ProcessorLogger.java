@@ -42,7 +42,7 @@ public class ProcessorLogger {
     public void info(String msg, Element elm) {
         // Kinds others than WARNING are treated as ERRORS in IDEA
         // http://youtrack.jetbrains.com/issue/IDEA-105383
-        log(Kind.WARNING, msg, elm);
+        log(Kind.OTHER, msg, elm);
     }
 
     public void info(String msg) {

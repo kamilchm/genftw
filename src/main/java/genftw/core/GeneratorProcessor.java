@@ -56,7 +56,7 @@ import javax.lang.model.util.Types;
  * @see Generator
  */
 @SupportedAnnotationTypes("genftw.api.Generator")
-@SupportedSourceVersion(SourceVersion.RELEASE_6)
+@SupportedSourceVersion(SourceVersion.RELEASE_7)
 @SupportedOptions({
         GeneratorProcessor.OPT_MATCHED_ELEMENT_PACKAGE_FILTER,
         GeneratorProcessor.OPT_TEMPLATE_ROOT_DIR,
